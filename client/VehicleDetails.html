@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vehicle Details</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="VehicleDetails.js" defer></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+</head>
+<body class="bg-gray-50">
+
+  <div class="bg-white shadow-sm border-b">
+    <div class="container mx-auto px-4 py-4">
+      <button onclick="goBack()" class="flex items-center space-x-2 text-gray-600 hover:text-gray-800">
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        <span>Back to Listings</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="container mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+          <div class="h-96 bg-gray-200 relative">
+            <img id="vehicle-image" class="w-full h-full object-cover" />
+            <div id="vehicle-price" class="absolute top-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-xl font-bold">
+              $00,000
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h1 id="vehicle-title" class="text-3xl font-bold text-gray-900 mb-4"></h1>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="flex items-center space-x-2 text-gray-600">
+              <i data-lucide="calendar" class="h-5 w-5"></i>
+              <div>
+                <p class="text-sm text-gray-500">Year</p>
+                <p id="vehicle-year" class="font-medium"></p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2 text-gray-600">
+              <i data-lucide="gauge" class="h-5 w-5"></i>
+              <div>
+                <p class="text-sm text-gray-500">Mileage</p>
+                <p id="vehicle-mileage" class="font-medium"></p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2 text-gray-600">
+              <i data-lucide="fuel" class="h-5 w-5"></i>
+              <div>
+                <p class="text-sm text-gray-500">Fuel Type</p>
+                <p id="vehicle-fuel" class="font-medium"></p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2 text-gray-600">
+              <i data-lucide="settings" class="h-5 w-5"></i>
+              <div>
+                <p class="text-sm text-gray-500">Transmission</p>
+                <p id="vehicle-transmission" class="font-medium"></p>
+              </div>
+            </div>
+          </div>
+          <div class="border-t pt-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-3">Description</h2>
+            <p id="vehicle-description" class="text-gray-700 leading-relaxed"></p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">Vehicle Details</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <p class="text-gray-500">Condition</p>
+              <p id="vehicle-condition" class="font-medium text-gray-900"></p>
+            </div>
+            <div>
+              <p class="text-gray-500">Location</p>
+              <p id="vehicle-location" class="font-medium text-gray-900 flex items-center">
+                <i data-lucide="map-pin" class="h-4 w-4 mr-1"></i>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6 sticky top-4">
+          <div class="text-center mb-6">
+            <p id="sidebar-price" class="text-3xl font-bold text-blue-600 mb-2"></p>
+            <p class="text-gray-600">Asking Price</p>
+          </div>
+          <button onclick="handleInterest()" class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2">
+            <i data-lucide="heart" class="h-5 w-5"></i>
+            <span>I'm Interested</span>
+          </button>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Seller Information</h3>
+          <div class="flex items-center space-x-3 mb-4">
+            <div class="bg-blue-100 rounded-full p-2">
+              <i data-lucide="user" class="h-6 w-6 text-blue-600"></i>
+            </div>
+            <div>
+              <p id="seller-name" class="font-medium text-gray-900"></p>
+              <p class="text-sm text-gray-600">Member since 2023</p>
+            </div>
+          </div>
+          <div class="space-y-2 text-sm text-gray-600">
+            <p>✓ Verified Seller</p>
+            <p>✓ Responsive to Messages</p>
+            <p>✓ Vehicle History Available</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+
+      const vehicle = JSON.parse(localStorage.getItem("selectedVehicle"));
+      if (!vehicle) {
+        alert("No vehicle data found.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      document.getElementById("vehicle-image").src = vehicle.image || "";
+      document.getElementById("vehicle-price").textContent = `$${vehicle.price?.toLocaleString() || "0"}`;
+      document.getElementById("vehicle-title").textContent =
+        vehicle.title || [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(" ");
+      document.getElementById("vehicle-year").textContent = vehicle.year || "N/A";
+      document.getElementById("vehicle-mileage").textContent = vehicle.mileage ? `${vehicle.mileage.toLocaleString()} mi` : "N/A";
+      document.getElementById("vehicle-fuel").textContent = vehicle.fuel || vehicle.fuelType || "N/A";
+      document.getElementById("vehicle-transmission").textContent = vehicle.transmission || "N/A";
+      document.getElementById("vehicle-description").textContent = vehicle.description || "No description available.";
+      document.getElementById("vehicle-condition").textContent = vehicle.condition || "Used";
+      document.getElementById("vehicle-location").textContent = vehicle.location || "Unknown";
+      document.getElementById("sidebar-price").textContent = `$${vehicle.price?.toLocaleString() || "0"}`;
+      document.getElementById("seller-name").textContent = vehicle.owner || vehicle.sellerName || "Admin";
+    });
+
+    function goBack() {
+      window.history.back();
+    }
+
+    function handleInterest() {
+      alert("Interest expressed in this vehicle!");
+    }
+  </script>
+</body>
+</html>

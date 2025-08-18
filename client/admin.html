@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel - DriveEasy</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-5xl mx-auto">
+    <div class="flex justify-between">
+      <h1 class="text-3xl font-bold mb-6">Admin Panel</h1>
+      <p class="font-bold text-2xl cursor-pointer"><a href="/index.html">x</a></p>
+    </div>
+
+    <form id="vehicle-form" class="bg-white p-6 rounded shadow mb-10">
+      <h2 class="text-xl font-semibold mb-4">Add New Vehicle</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <input type="text" id="title" placeholder="Title" class="border p-2 rounded" required>
+        <input type="text" id="owner" placeholder="Owner Name" class="border p-2 rounded" required>
+        <input type="text" id="price" placeholder="Price" class="border p-2 rounded" required>
+        <input type="text" id="fuel" placeholder="Fuel Type" class="border p-2 rounded">
+        <input type="text" id="speed" placeholder="Top Speed" class="border p-2 rounded">
+        <input type="text" id="location" placeholder="Location" class="border p-2 rounded">
+        <input type="file" id="image" accept="image/*" class="border p-2 rounded">
+      </div>
+      <textarea id="description" placeholder="Description" class="w-full border mt-4 p-2 rounded"></textarea>
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 mt-4 rounded">Add Vehicle</button>
+    </form>
+
+    <div id="vehicle-list" class="space-y-4">
+      
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
