@@ -42,4 +42,28 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.post('/register', async (req, res) => {
+  try {
+    const { fullname, email, phonenumber, password } = req.body;
+    if(!fullname || !email || !phonenumber || !password) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+
+    const existingUser = await db('user_creds').where({ email }).first();
+    if(existingUser) {
+      return res.status(400).json({ success: false, message: "User already exist" });
+    }
+
+    const user = await db('user_creds').insert({ full_name : fullname, email : email, phone : phonenumber, password : password });
+    console.log(user);
+  } catch (error) {
+    console.error("Register Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+})
+
 module.exports = router;
