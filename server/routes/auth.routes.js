@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const db = require('../configs/database');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
 router.post('/login', async (req, res) => {
   try {
@@ -54,8 +55,18 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ success: false, message: "User already exist" });
     }
 
-    const user = await db('user_creds').insert({ full_name : fullname, email : email, phone : phonenumber, password : password });
-    console.log(user);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await db('user_creds').insert({ full_name : fullname, email : email, phone : phonenumber, password : hashedPassword });
+
+    res.status(200).json({ 
+      success : true, 
+      message : "User Registered Successfully", 
+      user : { 
+        email : email, 
+        name : fullname, 
+        phone : phonenumber 
+      }
+    });
   } catch (error) {
     console.error("Register Error:", error);
     res.status(500).json({
