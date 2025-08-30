@@ -2,6 +2,7 @@ const router = require('express').Router();
 const db = require('../configs/database');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+require('dotenv').config();
 
 router.post('/login', async (req, res) => {
   try {
@@ -75,6 +76,42 @@ router.post('/register', async (req, res) => {
       error: error.message,
     });
   }
-})
+});
+
+router.get('/verifytoken', async (req, res) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "No token provided"
+      });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(403).json({
+          success: false,
+          message: "Invalid or expired token"
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: "Token is valid",
+        user: decoded
+      });
+    });
+
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+});
 
 module.exports = router;

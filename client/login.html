@@ -80,12 +80,21 @@
       const email = form.email.value;
       const password = form.password.value;
 
-      if (email === 'user@example.com' && password === 'password') {
-        alert('Login successful!');
-      } else {
-        const errorBox = document.getElementById('login-error');
-        errorBox.classList.remove('hidden');
-      }
+      const request = axios.post("http://localhost:5000/api/auth/login", {
+        email : email,
+        password : password
+      }).then(res => {
+        if(res.data.success) {
+          alert('Logged In Successfully');
+          localStorage.setItem('token', res.data.token);
+          location.href = "./index.html";
+        } else {
+          alert('Failed to Login' + res.data.message);
+        }
+      }).catch(err => {
+        console.error("Error:", err.response?.data || err.message);
+        alert(err.response?.data.message || err.message);
+      });
     }
   </script>
 </body>

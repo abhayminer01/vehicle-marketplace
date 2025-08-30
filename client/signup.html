@@ -106,7 +106,7 @@
   </section>
 
   <script>
-    function handleSignup(e) {
+    async function handleSignup(e) {
       e.preventDefault();
       const form = e.target;
       const name = form.name.value;
@@ -118,6 +118,23 @@
       if(password !== confirmPassword) {
         return alert('Password Missmatch');
       }
+
+      const request = await axios.post('http://localhost:5000/api/auth/register',{
+        fullname : name,
+        email : email,
+        phonenumber : phone,
+        password : password
+      }).then(res => {
+        if(res.data.success) {
+          alert('User Registered Successfully');
+          location.href = "./login.html";
+        } else {
+          alert('Failed to register user' + res.data.message);
+        }
+      }).catch(err => {
+        console.error("Error:", err.response?.data || err.message);
+        alert(err.response?.data.message || err.message);
+      });
     }
   </script>
 </body>
