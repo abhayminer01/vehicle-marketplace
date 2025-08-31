@@ -6,14 +6,29 @@
   <title>Profile | Wheelzy</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    #bg-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-gray-900 via-blue-900 to-black min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col">
+
+  <!-- Video Background -->
+  <video autoplay muted loop id="bg-video">
+    <source src="./MUSTANG.mp4" type="video/mp4">
+  </video>
 
   <!-- Navbar -->
   <nav class="absolute top-0 left-0 w-full z-20 bg-white/10 backdrop-blur-md border-b border-white/20">
     <div class="container mx-auto px-6">
       <div class="flex justify-between items-center h-16">
-
         <!-- Logo -->
         <div class="flex items-center space-x-2">
           <svg class="h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -43,9 +58,9 @@
   </nav>
 
   <!-- Profile Section -->
-  <main class="flex-grow flex items-center justify-center px-6 pt-24">
+  <main class="flex-grow px-6 pt-24 relative z-10">
     <div
-      class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-lg p-8 w-full max-w-md text-center">
+      class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-lg p-8 w-full max-w-md text-center mx-auto">
       
       <!-- Avatar -->
       <div class="flex justify-center mb-6">
@@ -59,19 +74,149 @@
       <p id="email" class="text-gray-300">johndoe@email.com</p>
       <p id="phone" class="text-gray-400 mt-2">+91 98765 43210</p>
 
+      <!-- Edit Button -->
+      <button id="editBtn" class="mt-6 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+        Edit Profile
+      </button>
     </div>
+
+    <!-- Favorites Section -->
+    <section class="mt-12 max-w-4xl mx-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-lg p-6">
+      <h3 class="text-xl font-bold text-white mb-4">⭐ Favorites</h3>
+      <div id="favoritesList" class="grid gap-4 md:grid-cols-2"></div>
+    </section>
+
+    <!-- My Listings Section -->
+    <section class="mt-12 max-w-4xl mx-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-lg p-6">
+      <h3 class="text-xl font-bold text-white mb-4">🚗 My Listings</h3>
+      <div id="listingsList" class="grid gap-4 md:grid-cols-2"></div>
+    </section>
   </main>
 
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-        
-    })
+  <!-- Edit Modal -->
+  <div id="editModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-lg w-full max-w-md p-6 relative">
+      <h2 class="text-xl font-bold mb-4">Edit Profile</h2>
 
+      <form id="editForm" class="space-y-4">
+        <input type="text" id="editFullname" placeholder="Full Name"
+          class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-400"/>
+
+        <input type="email" id="editEmail" placeholder="Email"
+          class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-400"/>
+
+        <input type="text" id="editPhone" placeholder="Phone Number"
+          class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-400"/>
+
+        <div class="flex justify-end space-x-3">
+          <button type="button" id="cancelEdit" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let userData = {};
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      const token = localStorage.getItem('token');
+
+      try {
+        // Get user profile
+        const res = await axios.get('http://localhost:5000/api/users/profile', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (res.data.success) {
+          userData = res.data.data;
+          const { fullname, email, phone } = userData;
+
+          document.getElementById('fullname').innerText = fullname;
+          document.getElementById('email').innerText = email;
+          document.getElementById('phone').innerText = phone;
+        }
+
+        // Fetch favorites
+        const favRes = await axios.get('http://localhost:5000/api/users/favorites', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (favRes.data.success) renderVehicles(favRes.data.data, "favoritesList");
+
+        // Fetch listings
+        const listRes = await axios.get('http://localhost:5000/api/users/listings', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (listRes.data.success) renderVehicles(listRes.data.data, "listingsList");
+
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        alert("Session expired, please login again!");
+        location.href = "./login.html";
+      }
+    });
+
+    // Render vehicles function
+    function renderVehicles(vehicles, containerId) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = vehicles.length ? "" : "<p class='text-gray-300'>No vehicles found.</p>";
+
+      vehicles.forEach(v => {
+        const card = document.createElement("div");
+        card.className = "bg-white/20 rounded-lg p-4 shadow-md";
+        card.innerHTML = `
+          <h4 class="text-lg font-bold text-white">${v.make} ${v.model}</h4>
+          <p class="text-gray-300">${v.year} • ${v.price} USD</p>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Logout
     document.getElementById('logoutBtn').addEventListener('click', () => {
       localStorage.removeItem('token');
       window.location.href = './login.html';
     });
-  </script>
 
+    // Open Edit Modal
+    document.getElementById('editBtn').addEventListener('click', () => {
+      document.getElementById('editFullname').value = userData.fullname || '';
+      document.getElementById('editEmail').value = userData.email || '';
+      document.getElementById('editPhone').value = userData.phone || '';
+      document.getElementById('editModal').classList.remove('hidden');
+    });
+
+    // Cancel Edit
+    document.getElementById('cancelEdit').addEventListener('click', () => {
+      document.getElementById('editModal').classList.add('hidden');
+    });
+
+    // Save Edit
+    document.getElementById('editForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const token = localStorage.getItem('token');
+
+      const updatedData = {
+        fullname: document.getElementById('editFullname').value,
+        email: document.getElementById('editEmail').value,
+        phone: document.getElementById('editPhone').value
+      };
+
+      try {
+        const res = await axios.put('http://localhost:5000/api/users/profile', updatedData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (res.data.success) {
+          alert("Profile updated successfully!");
+          localStorage.setItem('token', res.data.token);
+          window.location.reload();
+        }
+      } catch (error) {
+        console.error("Error updating profile:", error);
+        alert("Error updating profile. Try again!");
+      }
+    });
+  </script>
 </body>
 </html>
