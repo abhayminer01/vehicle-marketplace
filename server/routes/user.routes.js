@@ -49,6 +49,7 @@ router.put('/profile', authMiddleware, async (req, res) => {
   }
 });
 
+// get fav list
 router.get('/favorites', authMiddleware, async (req, res) => {
   try {
     const list = await db('favorites').where({ user_id : req.user.id }).select('*');
@@ -57,5 +58,14 @@ router.get('/favorites', authMiddleware, async (req, res) => {
     res.status(500).json({ success: false, message: 'Error fetching favorite list', error: error.message });
   }
 });
+
+// add to fav list
+router.post('/favorites', authMiddleware, async (req, res) => {
+  try {
+    const { veh_id } = req.body;
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error adding to favorite list', error: error.message });
+  }
+})
 
 module.exports = router;
