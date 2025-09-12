@@ -5,6 +5,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth.routes');
 const vehicleRoutes = require('./routes/vehicle.routes');
 const userRoutes = require('./routes/user.routes');
+const favoriteRoutes = require('./routes/favorite.routes');
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/favorites', favoriteRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

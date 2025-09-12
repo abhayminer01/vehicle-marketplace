@@ -19,7 +19,7 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: existingUser.id, email: existingUser.email },
+      { id: existingUser.user_id, email: existingUser.email },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -29,7 +29,7 @@ router.post('/login', async (req, res) => {
       message: "Login successful",
       token,
       user: {
-        id: existingUser.id,
+        id: existingUser.user_id,
         email: existingUser.email,
       }
     });

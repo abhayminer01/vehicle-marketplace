@@ -63,6 +63,10 @@
       <a href="#vehicles" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
         Explore Vehicles
       </a>
+      <button id="add-vehicle-btn"
+        class="mt-6 px-6 py-3 ml-5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+        Sell Vehicle
+      </button>
     </div>
   </section>
 
@@ -96,11 +100,18 @@
     </div>
   </section>
 
-  <!-- Vehicle Listings -->
+    <!-- Vehicle Listings -->
   <main id="vehicles" class="container mx-auto px-6 py-12">
     <div class="mb-10 text-center">
       <h2 class="text-4xl font-bold mb-2">Available Vehicles</h2>
       <p class="text-gray-600">Browse through our latest listings</p>
+
+      <!-- Add Vehicle Button -->
+      <button id="add-vehicle-btn"
+        onclick="handleSellClick()"
+        class="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+        Sell Your Vehicle
+      </button>
     </div>
 
     <div id="vehicle-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -109,12 +120,17 @@
   </main>
 
   <script>
+
+    function handleSellClick() {
+      window.location.href = "./add-vehicle.html";
+    }
     window.addEventListener('DOMContentLoaded', async () => {
       loadVehicles();
       const token = localStorage.getItem('token');
       const loginBtn = document.getElementById('login-btn');
       const signupBtn = document.getElementById('signup-btn');
       const navLinks = document.getElementById('nav-links');
+      const addVehicleBtn = document.getElementById('add-vehicle-btn');
 
       if (token) {
         try {
@@ -133,11 +149,29 @@
               "px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition";
 
             navLinks.appendChild(profileBtn);
+
+            // ✅ Logged in → allow adding vehicle
+            addVehicleBtn.innerText = "Sell Vehicle";
+            addVehicleBtn.onclick = () => {
+              window.location.href = "./add-vehicle.html";
+            };
           }
         } catch (err) {
           console.warn("Token invalid or expired:", err.response?.data || err.message);
           localStorage.removeItem("token");
+
+          // ❌ Not logged in → redirect to login
+          addVehicleBtn.innerText = "Login to Sell Vehicle";
+          addVehicleBtn.onclick = () => {
+            window.location.href = "./login.html";
+          };
         }
+      } else {
+        // ❌ No token → redirect to login
+        addVehicleBtn.innerText = "Login to Add Vehicle";
+        addVehicleBtn.onclick = () => {
+          window.location.href = "./login.html";
+        };
       }
     });
 
@@ -169,15 +203,15 @@
                   class="w-full h-48 object-cover" />
 
               <div class="p-4">
-                <h3 class="text-xl font-semibold text-white">${vehicle.title}</h3>
-                <p class="text-gray-300">Year: ${vehicle.year}</p>
-                <p class="text-blue-400 font-bold mt-2">₹ ${vehicle.price.toLocaleString()}</p>
+                <h3 class="text-xl font-semibold text-red-600">${vehicle.title} : ${vehicle.year}</h3>
+                <p class="text-gray-600">${vehicle.description}</p>
+                <p class="text-blue-600 font-bold mt-2">₹ ${vehicle.price.toLocaleString()}</p>
               </div>
             `;
 
             // redirect on click
             card.addEventListener("click", () => {
-              window.location.href = `./vehicle-details.html?id=${vehicle.id}`;
+              window.location.href = `./vehicle-details.html?id=${vehicle.vehicle_id  }`;
             });
 
             grid.appendChild(card);

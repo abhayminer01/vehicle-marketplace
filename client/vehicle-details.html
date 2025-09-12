@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vehicle Details</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: url(./MUSTANG.mp4) no-repeat center center fixed;
+      background-size: cover;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 1rem;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen text-white">
+
+  <!-- Container -->
+  <div id="vehicleDetails" class="glass max-w-4xl w-full p-6 shadow-xl">
+    <h1 class="text-3xl font-bold mb-6 text-center text-red-500">Vehicle Details</h1>
+    <div id="detailsContent" class="space-y-4"></div>
+    <div class="flex justify-between mt-6">
+      <button id="backBtn" class="bg-red-600 px-5 py-2 rounded-lg hover:bg-red-700 transition">
+        ⬅ Back to Vehicles
+      </button>
+      <button id="favBtn" class="bg-blue-600 px-5 py-2 rounded-lg hover:bg-blue-700 transition">
+        ⭐ Add to Favorites
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const vehicleId = params.get("id");
+    const token = localStorage.getItem("token");
+
+    async function loadVehicleDetails() {
+      try {
+        const res = await axios.get(`http://localhost:5000/api/vehicles/${vehicleId}`);
+        if (!res.data.success) {
+          document.getElementById("detailsContent").innerHTML = 
+            `<p class="text-center text-red-400">Vehicle not found.</p>`;
+          return;
+        }
+
+        const v = res.data.data;
+        document.getElementById("detailsContent").innerHTML = `
+          <img src="${v.image || './placeholder-car.jpg'}" 
+               alt="${v.title}" 
+               class="w-full h-64 object-cover rounded-lg shadow-lg" />
+
+          <h2 class="text-2xl text-red-900 font-semibold mt-4">${v.title}</h2>
+          <p class="text-gray-900"><strong>Price:</strong> ₹ ${v.price.toLocaleString()}</p>
+          <p class="text-gray-900"><strong>Top Speed:</strong> ${v.top_speed} km/h</p>
+          <p class="text-gray-900"><strong>Location:</strong> ${v.location}</p>
+          <p class="text-gray-900"><strong>Description:</strong> ${v.description}</p>
+        `;
+      } catch (error) {
+        console.error("Error fetching vehicle:", error);
+        document.getElementById("detailsContent").innerHTML =
+          `<p class="text-center text-red-400">Error loading vehicle details.</p>`;
+      }
+    }
+
+    // Back button
+    document.getElementById("backBtn").addEventListener("click", () => {
+      window.location.href = "./index.html";
+    });
+
+    // Add to Favorites
+    document.getElementById("favBtn").addEventListener("click", async () => {
+      if (!token) {
+        alert("Please login to add favorites!");
+        window.location.href = "./login.html";
+        return;
+      }
+      try {
+        const res = await axios.post(
+          "http://localhost:5000/api/favorites/add",
+          { vehicle_id: vehicleId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        alert(res.data.message);
+      } catch (err) {
+        console.error("Error adding favorite:", err);
+        alert("Failed to add favorite.");
+      }
+    });
+
+    loadVehicleDetails();
+  </script>
+</body>
+</html>

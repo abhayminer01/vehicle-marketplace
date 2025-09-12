@@ -44,7 +44,7 @@
         <!-- Nav links -->
         <div class="flex items-center space-x-6">
           <a href="./index.html" class="text-white hover:text-blue-400 font-medium transition">Home</a>
-          <a href="#vehicles" class="text-white hover:text-blue-400 font-medium transition">Vehicles</a>
+          <a href="#favorites" class="text-white hover:text-blue-400 font-medium transition">Favorites</a>
           <a href="#about" class="text-white hover:text-blue-400 font-medium transition">About</a>
 
           <!-- Logout Button -->
@@ -81,15 +81,9 @@
     </div>
 
     <!-- Favorites Section -->
-    <section class="mt-12 max-w-4xl mx-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-lg p-6">
+    <section id="favorites" class="mt-12 max-w-4xl mx-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-lg p-6">
       <h3 class="text-xl font-bold text-white mb-4">⭐ Favorites</h3>
       <div id="favoritesList" class="grid gap-4 md:grid-cols-2"></div>
-    </section>
-
-    <!-- My Listings Section -->
-    <section class="mt-12 max-w-4xl mx-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-lg p-6">
-      <h3 class="text-xl font-bold text-white mb-4">🚗 My Listings</h3>
-      <div id="listingsList" class="grid gap-4 md:grid-cols-2"></div>
     </section>
   </main>
 
@@ -143,33 +137,84 @@
         });
         if (favRes.data.success) renderVehicles(favRes.data.data, "favoritesList");
 
-        // Fetch listings
-        const listRes = await axios.get('http://localhost:5000/api/users/listings', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (listRes.data.success) renderVehicles(listRes.data.data, "listingsList");
-
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.error('Error fetching profile or favorites:', error);
         alert("Session expired, please login again!");
-        // location.href = "./login.html";
+        // window.location.href = "./login.html";
       }
+    });window.addEventListener('DOMContentLoaded', async () => {
+  const token = localStorage.getItem('token');
+  console.log("Token found in localStorage:", token); // 👀 Debug
+
+  if (!token) {
+    alert("No token found, please login again!");
+    return (window.location.href = "./login.html");
+  }
+
+  try {
+    const res = await axios.get('http://localhost:5000/api/users/profile', {
+      headers: { Authorization: `Bearer ${token}` }
     });
+
+    console.log("Profile response:", res.data); // 👀 Debug
+
+    if (res.data.success) {
+      userData = res.data.data;
+      const { fullname, email, phone } = userData;
+
+      document.getElementById('fullname').innerText = fullname;
+      document.getElementById('email').innerText = email;
+      document.getElementById('phone').innerText = phone;
+    } else {
+      alert("Session expired, please login again!");
+      window.location.href = "./login.html";
+    }
+  } catch (error) {
+    console.error("Error fetching profile:", error.response?.data || error.message);
+
+    if (error.response?.status === 401) {
+      alert("Unauthorized: Session expired, please login again!");
+      window.location.href = "./login.html";
+    } else {
+      alert("Server error fetching profile.");
+    }
+  }
+});
 
     // Render vehicles function
     function renderVehicles(vehicles, containerId) {
       const container = document.getElementById(containerId);
-      container.innerHTML = vehicles.length ? "" : "<p class='text-gray-300'>No vehicles found.</p>";
+      container.innerHTML = vehicles.length ? "" : "<p class='text-gray-300'>No favorite vehicles found.</p>";
 
       vehicles.forEach(v => {
         const card = document.createElement("div");
-        card.className = "bg-white/20 rounded-lg p-4 shadow-md";
+        card.className = "bg-blue-900/20 rounded-lg p-4 shadow-md hover:scale-105 transform transition flex justify-center flex-col";
         card.innerHTML = `
-          <h4 class="text-lg font-bold text-white">${v.make} ${v.model}</h4>
-          <p class="text-gray-300">${v.year} • ${v.price} USD</p>
+          <img src="${v.image}" />
+          <h4 class="text-lg font-bold text-white">${v.title}</h4>
+          <p class="text-gray-300">${v.year} • ₹${v.price}</p>
+          <p class="text-white">${v.description}</p>
+          <p class="text-white">Location : ${v.location}</p>
+          <p class="text-white">Top Speed : ${v.top_speed}</p>
+          <button onclick="removeFavorite(${v.vehicle_id})" class="mt-2 bg-red-900 rounded-[20px] p-[5px] text-white hover:bg-red-600">Remove From favorite</button>
         `;
         container.appendChild(card);
       });
+    }
+
+    async function removeFavorite(id) {
+      const token = localStorage.getItem('token');
+      try {
+        const res = await axios.delete(`http://localhost:5000/api/favorites/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if(res.data.success) {
+          alert('Removed from favorite');
+          window.location.reload();
+        } 
+      } catch (error) {
+        alert('error occured'+ error)
+      }
     }
 
     // Logout
