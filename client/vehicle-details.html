@@ -11,8 +11,6 @@
       margin: 0;
       padding: 0;
       font-family: 'Poppins', sans-serif;
-      background: url('./MUSTANG.mp4') no-repeat center center fixed;
-      background-size: cover;
     }
     .glass {
       background: rgba(255, 255, 255, 0.15);
@@ -27,6 +25,7 @@
   <video autoplay muted loop id="bg-video" class="fixed top-0 left-0 w-full h-full object-cover -z-10">
     <source src="./MUSTANG.mp4" type="video/mp4">
   </video>
+
   <!-- Container -->
   <div id="vehicleDetails" class="glass max-w-4xl w-full p-6 shadow-xl">
     <h1 class="text-3xl font-bold mb-6 text-center text-red-500">Vehicle Details</h1>
@@ -49,6 +48,12 @@
     <div class="bg-white rounded-2xl shadow-lg w-full max-w-md p-6 relative text-black">
       <h2 class="text-xl font-bold mb-4">Send Purchase Request</h2>
 
+      <!-- Contact Number -->
+      <input id="buyContact" type="tel" 
+        placeholder="Enter your contact number" 
+        class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-green-400 mb-4" />
+
+      <!-- Message -->
       <textarea id="buyMessage" rows="4" 
         placeholder="Write your message/request here..."
         class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-green-400 mb-4"></textarea>
@@ -136,7 +141,16 @@
         return;
       }
 
+      const contact = document.getElementById("buyContact").value.trim();
       const message = document.getElementById("buyMessage").value.trim();
+
+      // ✅ Validate contact number (Indian format: 10 digits starting 6-9)
+      const phoneRegex = /^[6-9]\d{9}$/;
+      if (!phoneRegex.test(contact)) {
+        alert("Please enter a valid 10-digit contact number!");
+        return;
+      }
+
       if (!message) {
         alert("Please enter a message before sending!");
         return;
@@ -145,13 +159,14 @@
       try {
         const res = await axios.post(
           "http://localhost:5000/api/requests/send",
-          { vehicle_id: vehicleId, message },
+          { vehicle_id: vehicleId, message, contact },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
         alert(res.data.message || "Request sent successfully!");
         document.getElementById("buyModal").classList.add("hidden");
         document.getElementById("buyMessage").value = "";
+        document.getElementById("buyContact").value = "";
       } catch (err) {
         console.error("Error sending request:", err);
         alert("Failed to send request.");
