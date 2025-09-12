@@ -66,6 +66,30 @@ router.get("/my-requests", authMiddleware, async (req, res) => {
   }
 });
 
+// Get requests for vehicles owned by logged-in user
+router.get("/my-vehicles", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const requests = await db("request")
+      .join("vehicle", "request.vehicle_id", "=", "vehicle.vehicle_id")
+      .join("user_creds", "request.user_id", "=", "user_creds.user_id")
+      .select(
+        "request.request_id",
+        "request.message",
+        "request.contact",
+        "vehicle.title as vehicle_title",
+        "user_creds.full_name as user_name"
+      )
+      .where("vehicle.owner_id", userId);
+
+    res.json({ success: true, data: requests });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error fetching requests" });
+  }
+});
+
 router.delete("/delete/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
