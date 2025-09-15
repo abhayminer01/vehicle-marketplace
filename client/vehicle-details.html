@@ -82,21 +82,38 @@
         const v = res.data.data;
         document.getElementById("detailsContent").innerHTML = `
           <img src="${v.image || './placeholder-car.jpg'}" 
-               alt="${v.title}" 
-               class="w-full h-64 object-cover rounded-lg shadow-lg" />
+              alt="${v.title}" 
+              class="w-full h-64 object-cover rounded-lg shadow-lg" />
 
           <h2 class="text-2xl text-red-900 font-semibold mt-4">${v.title}</h2>
           <p class="text-gray-900"><strong>Price:</strong> ₹ ${v.price.toLocaleString()}</p>
           <p class="text-gray-900"><strong>Top Speed:</strong> ${v.top_speed} km/h</p>
           <p class="text-gray-900"><strong>Location:</strong> ${v.location}</p>
           <p class="text-gray-900"><strong>Description:</strong> ${v.description}</p>
+
+          <!-- ✅ Status -->
+          <p class="mt-2 font-medium ${
+            v.status === "available" ? "text-green-600" : "text-red-600"
+          }">
+            <strong>Status:</strong> ${v.status}
+          </p>
         `;
+
+        // ✅ Lock Buy button if sold
+        const buyBtn = document.getElementById("buyBtn");
+        if (v.status === "sold") {
+          buyBtn.disabled = true;
+          buyBtn.classList.add("bg-gray-500", "cursor-not-allowed");
+          buyBtn.classList.remove("bg-green-600", "hover:bg-green-700");
+          buyBtn.textContent = "🚫 Sold Out";
+        }
       } catch (error) {
         console.error("Error fetching vehicle:", error);
         document.getElementById("detailsContent").innerHTML =
           `<p class="text-center text-red-400">Error loading vehicle details.</p>`;
       }
     }
+
 
     // Back button
     document.getElementById("backBtn").addEventListener("click", () => {

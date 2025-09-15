@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Listings - Wheelzy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+  <!-- Background Video -->
+  <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover z-[-1]">
+    <source src="MUSTANG.mp4" type="video/mp4" />
+  </video>
+  <div class="absolute inset-0 bg-black/70 z-[-1]"></div>
+
+  <!-- Navbar -->
+  <nav class="absolute top-0 left-0 w-full z-20 bg-white/10 backdrop-blur-md border-b border-white/20">
+    <div class="container mx-auto px-6">
+      <div class="flex justify-between items-center h-16">
+        <!-- Logo -->
+        <div class="flex items-center space-x-2">
+          <svg class="h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
+            <circle cx="7" cy="17" r="2"/>
+            <path d="M9 17h6"/>
+            <circle cx="17" cy="17" r="2"/>
+          </svg>
+          <span class="text-2xl font-bold text-white drop-shadow-lg">Wheelzy</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Content -->
+  <main class="container mx-auto px-6 pt-28 pb-16">
+    <h1 class="text-4xl font-bold text-center text-red-400 mb-10">My Vehicle Listings</h1>
+    <div id="my-vehicle-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Listings will render here -->
+    </div>
+  </main>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 relative">
+      <h2 class="text-2xl font-bold mb-4 text-blue-600">Edit Vehicle</h2>
+
+      <form id="editForm" class="space-y-4">
+        <input type="hidden" id="edit-id" />
+        <div><label class="block text-sm font-medium">Title</label><input id="edit-title" type="text" class="w-full border rounded-lg p-2" required /></div>
+        <div><label class="block text-sm font-medium">Year</label><input id="edit-year" type="number" class="w-full border rounded-lg p-2" /></div>
+        <div><label class="block text-sm font-medium">Price</label><input id="edit-price" type="number" class="w-full border rounded-lg p-2" required /></div>
+        <div><label class="block text-sm font-medium">Top Speed</label><input id="edit-top_speed" type="text" class="w-full border rounded-lg p-2" /></div>
+        <div><label class="block text-sm font-medium">Location</label><input id="edit-location" type="text" class="w-full border rounded-lg p-2" required /></div>
+        <div><label class="block text-sm font-medium">Description</label><textarea id="edit-description" rows="3" class="w-full border rounded-lg p-2"></textarea></div>
+        <div><label class="block text-sm font-medium">Image URL</label><input id="edit-image" type="text" class="w-full border rounded-lg p-2" /></div>
+        <div class="flex justify-end space-x-3 pt-4">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please login to view your listings.");
+      window.location.href = "./login.html";
+    }
+
+    async function loadMyVehicles() {
+      try {
+        const res = await axios.get("http://localhost:5000/api/vehicles/my", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const vehicles = res.data.vehicles;
+        const grid = document.getElementById("my-vehicle-grid");
+        grid.innerHTML = "";
+
+        if (!vehicles || vehicles.length === 0) {
+          grid.innerHTML = `
+            <div class="col-span-full text-center text-gray-200 text-lg py-10 bg-white/10 rounded-lg">
+              🚗 You haven’t listed any vehicles yet.
+            </div>
+          `;
+          return;
+        }
+
+        vehicles.forEach(vehicle => {
+          const statusColor = vehicle.status === "available" ? "bg-green-500" : "bg-gray-500";
+          const toggleText = vehicle.status === "available" ? "Mark as Sold" : "Mark as Available";
+
+          const card = document.createElement("div");
+          card.className =
+            "bg-white rounded-xl shadow-lg overflow-hidden hover:scale-105 transform transition cursor-pointer";
+
+          card.innerHTML = `
+            <img src="${vehicle.image || './placeholder-car.jpg'}" alt="${vehicle.title}" class="w-full h-48 object-cover" />
+            <div class="p-4">
+              <h3 class="text-xl font-semibold text-red-600">${vehicle.title} : ${vehicle.year}</h3>
+              <p class="text-gray-700">${vehicle.description}</p>
+              <p class="text-blue-600 font-bold mt-2">₹ ${vehicle.price.toLocaleString()}</p>
+
+              <span class="inline-block mt-2 px-3 py-1 text-white text-sm rounded ${statusColor}">
+                ${vehicle.status}
+              </span>
+
+              <div class="flex flex-wrap gap-3 mt-4">
+                <button onclick="toggleStatus(${vehicle.vehicle_id}, '${vehicle.status}')"
+                  class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                  🔄 ${toggleText}
+                </button>
+                <button onclick="openEditModal(${vehicle.vehicle_id}, '${vehicle.title}', '${vehicle.year || ''}', '${vehicle.price}', '${vehicle.top_speed || ''}', '${vehicle.location}', \`${vehicle.description || ''}\`, '${vehicle.image || ''}')" 
+                  class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition">
+                  ✏️ Edit
+                </button>
+                <button onclick="deleteVehicle(${vehicle.vehicle_id})" 
+                  class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                  🗑 Delete
+                </button>
+              </div>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (err) {
+        console.error("Error loading vehicles:", err);
+        alert("Error loading your listings.");
+      }
+    }
+
+    async function toggleStatus(id, currentStatus) {
+      const newStatus = currentStatus === "available" ? "sold" : "available";
+      try {
+        await axios.put(`http://localhost:5000/api/vehicles/${id}/status`, 
+          { status: newStatus },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        loadMyVehicles();
+      } catch (err) {
+        console.error("Error updating status:", err);
+        alert("Failed to update vehicle status.");
+      }
+    }
+
+    function openEditModal(id, title, year, price, top_speed, location, description, image) {
+      document.getElementById("edit-id").value = id;
+      document.getElementById("edit-title").value = title;
+      document.getElementById("edit-year").value = year;
+      document.getElementById("edit-price").value = price;
+      document.getElementById("edit-top_speed").value = top_speed;
+      document.getElementById("edit-location").value = location;
+      document.getElementById("edit-description").value = description;
+      document.getElementById("edit-image").value = image;
+      document.getElementById("editModal").classList.remove("hidden");
+      document.getElementById("editModal").classList.add("flex");
+    }
+
+    function closeModal() {
+      document.getElementById("editModal").classList.add("hidden");
+      document.getElementById("editModal").classList.remove("flex");
+    }
+
+    document.getElementById("editForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = document.getElementById("edit-id").value;
+
+      const updatedVehicle = {
+        title: document.getElementById("edit-title").value,
+        year: document.getElementById("edit-year").value,
+        price: document.getElementById("edit-price").value,
+        top_speed: document.getElementById("edit-top_speed").value,
+        location: document.getElementById("edit-location").value,
+        description: document.getElementById("edit-description").value,
+        image: document.getElementById("edit-image").value,
+      };
+
+      try {
+        await axios.put(`http://localhost:5000/api/vehicles/edit/${id}`, updatedVehicle, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        alert("Vehicle updated successfully!");
+        closeModal();
+        loadMyVehicles();
+      } catch (err) {
+        console.error("Error updating vehicle:", err);
+        alert("Failed to update vehicle.");
+      }
+    });
+
+    async function deleteVehicle(id) {
+      if (!confirm("Are you sure you want to delete this vehicle?")) return;
+      try {
+        await axios.delete(`http://localhost:5000/api/vehicles/delete/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        alert("Vehicle deleted successfully.");
+        loadMyVehicles();
+      } catch (err) {
+        console.error("Error deleting vehicle:", err);
+        alert("Failed to delete vehicle.");
+      }
+    }
+
+    loadMyVehicles();
+  </script>
+</body>
+</html>

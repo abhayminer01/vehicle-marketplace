@@ -1,9 +1,8 @@
 const db = require('../configs/database');
 const authMiddleware = require('../middlewares/auth');
-
 const router = require('express').Router();
 
-// Add Vehicle
+// -------------------- ADD VEHICLE --------------------
 router.post('/add', authMiddleware, async (req, res) => {
   try {
     const { title, price, top_speed, location, description, image, year } = req.body;
@@ -23,7 +22,7 @@ router.post('/add', authMiddleware, async (req, res) => {
       description,
       image,
       year,
-      owner_id: req.user.id   // logged-in user
+      owner_id: req.user.id
     });
 
     res.json({
@@ -41,7 +40,7 @@ router.post('/add', authMiddleware, async (req, res) => {
   }
 });
 
-// ✅ Get all vehicles
+// -------------------- GET ALL VEHICLES --------------------
 router.get("/", async (req, res) => {
   try {
     const vehicles = await db("vehicle")
@@ -54,7 +53,8 @@ router.get("/", async (req, res) => {
         "description",
         "image",
         "year",
-        "owner_id"
+        "owner_id",
+        "status"
       )
       .orderBy("vehicle_id", "desc");
 
@@ -72,8 +72,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-
-// Get logged-in user's vehicles
+// -------------------- GET USER'S VEHICLES --------------------
 router.get('/my', authMiddleware, async (req, res) => {
   try {
     const vehicles = await db('vehicle')
@@ -87,7 +86,7 @@ router.get('/my', authMiddleware, async (req, res) => {
         vehicles: []
       });
     }
-
+    
     res.json({
       success: true,
       vehicles
@@ -101,6 +100,7 @@ router.get('/my', authMiddleware, async (req, res) => {
   }
 });
 
+// -------------------- GET VEHICLE BY ID --------------------
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -125,6 +125,121 @@ router.get("/:id", async (req, res) => {
       success: false,
       message: "Error fetching vehicle",
       error: error.message,
+    });
+  }
+});
+
+// -------------------- UPDATE VEHICLE --------------------
+router.put("/edit/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, price, top_speed, location, description, image, year } = req.body;
+
+    // Check if vehicle belongs to the logged-in user
+    const vehicle = await db("vehicle")
+      .where({ vehicle_id: id, owner_id: req.user.id })
+      .first();
+
+    if (!vehicle) {
+      return res.status(404).json({
+        success: false,
+        message: "Vehicle not found or not owned by user",
+      });
+    }
+
+    await db("vehicle")
+      .where({ vehicle_id: id })
+      .update({
+        title,
+        price,
+        top_speed,
+        location,
+        description,
+        image,
+        year,
+      });
+
+    res.json({
+      success: true,
+      message: "Vehicle updated successfully",
+    });
+  } catch (error) {
+    console.error("Error updating vehicle:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating vehicle",
+      error: error.message,
+    });
+  }
+});
+
+// -------------------- DELETE VEHICLE --------------------
+router.delete("/delete/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if vehicle belongs to logged-in user
+    const vehicle = await db("vehicle")
+      .where({ vehicle_id: id, owner_id: req.user.id })
+      .first();
+
+    if (!vehicle) {
+      return res.status(404).json({
+        success: false,
+        message: "Vehicle not found or not owned by user",
+      });
+    }
+
+    await db("vehicle").where({ vehicle_id: id }).del();
+
+    res.json({
+      success: true,
+      message: "Vehicle deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting vehicle:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error deleting vehicle",
+      error: error.message,
+    });
+  }
+});
+
+// ✅ Toggle availability
+router.put("/:id/status", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!["available", "sold"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status. Use 'available' or 'sold'."
+      });
+    }
+
+    const updated = await db("vehicle")
+      .where({ vehicle_id: id, owner_id: req.user.id })
+      .update({ status });
+
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        message: "Vehicle not found or not owned by you"
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Vehicle marked as ${status}`,
+    });
+  } catch (error) {
+    console.error("Error updating status:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating status",
+      error: error.message
     });
   }
 });
