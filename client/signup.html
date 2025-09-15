@@ -106,36 +106,75 @@
   </section>
 
   <script>
-    async function handleSignup(e) {
-      e.preventDefault();
-      const form = e.target;
-      const name = form.name.value;
-      const email = form.email.value;
-      const phone = form.phone.value;
-      const password = form.password.value;
-      const confirmPassword = form.confirmPassword.value;
+  async function handleSignup(e) {
+    e.preventDefault();
+    const form = e.target;
+    const name = form.name.value.trim();
+    const email = form.email.value.trim();
+    const phone = form.phone.value.trim();
+    const password = form.password.value;
+    const confirmPassword = form.confirmPassword.value;
 
-      if(password !== confirmPassword) {
-        return alert('Password Missmatch');
-      }
+    const errorBox = document.getElementById("signup-error");
 
-      const request = await axios.post('http://localhost:5000/api/auth/register',{
-        fullname : name,
-        email : email,
-        phonenumber : phone,
-        password : password
-      }).then(res => {
-        if(res.data.success) {
-          alert('User Registered Successfully');
-          location.href = "./login.html";
-        } else {
-          alert('Failed to register user' + res.data.message);
-        }
-      }).catch(err => {
-        console.error("Error:", err.response?.data || err.message);
-        alert(err.response?.data.message || err.message);
-      });
+    // Reset error box
+    errorBox.classList.add("hidden");
+    errorBox.innerText = "";
+
+    // ✅ Full name validation
+    if (!/^[A-Za-z ]{3,}$/.test(name)) {
+      return showError("Full name must be at least 3 characters and contain only letters/spaces.");
     }
-  </script>
+
+    // ✅ Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return showError("Please enter a valid email address.");
+    }
+
+    // ✅ Phone validation (10 digits, starts with 6-9)
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(phone)) {
+      return showError("Enter a valid 10-digit phone number (starting with 6–9).");
+    }
+
+    // ✅ Password validation
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+    if (!passwordRegex.test(password)) {
+      return showError("Password must be at least 6 characters long and include uppercase, lowercase, and a number.");
+    }
+
+    // ✅ Confirm password
+    if (password !== confirmPassword) {
+      return showError("Passwords do not match.");
+    }
+
+    try {
+      const res = await axios.post("http://localhost:5000/api/auth/register", {
+        fullname: name,
+        email: email,
+        phonenumber: phone,
+        password: password
+      });
+
+      if (res.data.success) {
+        alert("User Registered Successfully");
+        location.href = "./login.html";
+      } else {
+        showError("Failed to register: " + res.data.message);
+      }
+    } catch (err) {
+      console.error("Error:", err.response?.data || err.message);
+      showError(err.response?.data.message || err.message);
+    }
+  }
+
+  function showError(msg) {
+    const errorBox = document.getElementById("signup-error");
+    errorBox.innerText = msg;
+    errorBox.classList.remove("hidden");
+  }
+</script>
+
 </body>
 </html>
