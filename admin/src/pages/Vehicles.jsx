@@ -74,7 +74,7 @@ export default function Vehicles() {
               }}
             >
               <img
-                src={v.image || "https://via.placeholder.com/250x150"}
+                src={v.image || "placeholder.webp"}
                 alt={v.title}
                 style={{
                   width: "100%",
