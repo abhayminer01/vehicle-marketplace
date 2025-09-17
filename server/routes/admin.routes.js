@@ -1,6 +1,6 @@
 const db = require('../configs/database');
 const jwt = require('jsonwebtoken');
-
+const bcrypt = require("bcrypt");
 const router = require('express').Router();
 
 router.post('/login', async (req, res) => {
@@ -86,6 +86,96 @@ router.delete("/vehicles/:id", async (req, res) => {
   } catch (error) {
     console.error("Error deleting vehicle:", error);
     res.status(500).json({ success: false, message: "Error deleting vehicle" });
+  }
+});
+
+// ✅ GET all users
+router.get("/users", async (req, res) => {
+  try {
+    const users = await db("user_creds").select(
+      "user_id",
+      "full_name",
+      "email",
+      "phone",
+    );
+    res.json({ success: true, users });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ success: false, message: "Error fetching users" });
+  }
+});
+
+// ✅ GET single user by ID
+router.get("/users/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await db("user_creds").where({ user_id: id }).first();
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, user });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ success: false, message: "Error fetching user" });
+  }
+});
+
+
+// ✅ UPDATE user details
+router.put("/users/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { fullname, email, phonenumber, status, password } = req.body;
+
+    let updateData = {
+      full_name: fullname,
+      email,
+      phone: phonenumber,
+    };
+
+    // ✅ Hash password only if provided
+    if (password && password.trim() !== "") {
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      updateData.password = hashedPassword;
+    }
+
+    const updated = await db("user_creds")
+      .where({ user_id: id })
+      .update(updateData);
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, message: "User updated successfully" });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Error updating user", error });
+  }
+});
+
+
+// ✅ DELETE user
+router.delete("/users/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await db("user_creds").where({ user_id: id }).del();
+
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ success: false, message: "Error deleting user" });
   }
 });
 
