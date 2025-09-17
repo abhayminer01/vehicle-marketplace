@@ -108,36 +108,39 @@ export default function Users() {
           <div className="flex flex-col gap-4">
             {users.map((u) => (
               <div
-                key={u.user_id}
-                className="w-full bg-white rounded-xl p-5 shadow-md flex justify-between items-center hover:shadow-lg transition"
-              >
-                {/* User Info */}
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-800">{u.full_name}</h2>
-                  <p className="text-gray-600">
-                    <strong>Email:</strong> {u.email}
-                  </p>
-                  <p className="text-gray-600">
-                    <strong>Phone:</strong> {u.phone}
-                  </p>
-                </div>
+  key={u.user_id}
+  className="w-full rounded-xl p-5 shadow-md flex justify-between items-center 
+             bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 
+             text-white transition transform hover:scale-[1.02] hover:shadow-xl"
+>
+  {/* User Info */}
+  <div>
+    <h2 className="text-xl font-bold">{u.full_name}</h2>
+    <p className="text-sm opacity-90">
+      <strong>Email:</strong> {u.email}
+    </p>
+    <p className="text-sm opacity-90">
+      <strong>Phone:</strong> {u.phone}
+    </p>
+  </div>
 
-                {/* Actions */}
-                <div className="flex gap-3">
-                  <button
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow"
-                    onClick={() => handleEdit(u)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg shadow"
-                    onClick={() => handleDelete(u.user_id)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
+  {/* Actions */}
+  <div className="flex gap-3">
+    <button
+      className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg shadow text-white font-medium"
+      onClick={() => handleEdit(u)}
+    >
+      ✏️ Edit
+    </button>
+    <button
+      className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg shadow text-white font-medium"
+      onClick={() => handleDelete(u.user_id)}
+    >
+      🗑️ Delete
+    </button>
+  </div>
+</div>
+
             ))}
           </div>
         )}
