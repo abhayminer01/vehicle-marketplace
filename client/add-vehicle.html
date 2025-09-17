@@ -65,41 +65,98 @@
   </section>
 
   <script>
-    document.getElementById("addVehicleForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
+  document.getElementById("addVehicleForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("Please login first.");
-        window.location.href = "./login.html";
-        return;
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please login first.");
+      window.location.href = "./login.html";
+      return;
+    }
+
+    const title = document.getElementById("title").value.trim();
+    const price = parseFloat(document.getElementById("price").value);
+    const year = parseInt(document.getElementById("year").value);
+    const top_speed = document.getElementById("top_speed").value.trim();
+    const location = document.getElementById("location").value.trim();
+    const description = document.getElementById("description").value.trim();
+    const image = document.getElementById("image").value.trim();
+
+    // ✅ Validation
+    const currentYear = new Date().getFullYear();
+    if (title.length < 3) {
+      return showError("Title must be at least 3 characters.");
+    }
+    if (isNaN(price) || price <= 0) {
+      return showError("Price must be a valid positive number.");
+    }
+    if (isNaN(year) || year < 1900 || year > currentYear) {
+      return showError(`Year must be between 1900 and ${currentYear}.`);
+    }
+    if (top_speed && (isNaN(top_speed) || top_speed <= 0)) {
+      return showError("Top speed must be a valid positive number.");
+    }
+    if (!location) {
+      return showError("Location is required.");
+    }
+    if (image && !isValidURL(image)) {
+      return showError("Please enter a valid image URL.");
+    }
+
+    // ✅ Data object
+    const data = {
+      title,
+      price,
+      year,
+      top_speed,
+      location,
+      description,
+      image,
+    };
+
+    try {
+      const res = await axios.post("http://localhost:5000/api/vehicles/add", data, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.data.success) {
+        showSuccess("✅ Vehicle added successfully!");
+        document.getElementById("addVehicleForm").reset();
+        setTimeout(() => {
+          location.href = "./index.html";
+        }, 1000);
+      } else {
+        showError(res.data.message || "Error adding vehicle.");
       }
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+      showError(err.response?.data.message || "❌ Error adding vehicle!");
+    }
+  });
 
-      const data = {
-        title: document.getElementById("title").value,
-        price: document.getElementById("price").value,
-        top_speed: document.getElementById("top_speed").value,
-        location: document.getElementById("location").value,
-        description: document.getElementById("description").value,
-        image: document.getElementById("image").value,
-        year : document.getElementById('year').value,
-      };
+  // Helpers
+  function showError(msg) {
+    const el = document.getElementById("responseMsg");
+    el.innerText = msg;
+    el.className = "mt-4 text-center text-red-400 font-semibold";
+  }
 
-      try {
-        const res = await axios.post("http://localhost:5000/api/vehicles/add", data, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+  function showSuccess(msg) {
+    const el = document.getElementById("responseMsg");
+    el.innerText = msg;
+    el.className = "mt-4 text-center text-green-400 font-semibold";
+  }
 
-        if (res.data.success) {
-          document.getElementById("responseMsg").innerText = "✅ Vehicle added successfully!";
-          document.getElementById("addVehicleForm").reset();
-          location.href = "./index.html"
-        }
-      } catch (err) {
-        console.error(err.response?.data || err.message);
-        document.getElementById("responseMsg").innerText = "❌ Error adding vehicle!";
-      }
-    });
-  </script>
+  function isValidURL(str) {
+    try {
+      new URL(str);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+</script>
+
 </body>
 </html>
