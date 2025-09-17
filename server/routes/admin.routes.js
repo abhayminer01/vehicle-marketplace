@@ -58,4 +58,36 @@ router.post('/verifytoken', async (req, res) => {
     }
 });
 
+router.get('/vehicles', async (req, res) => {
+  try {
+    const vehicles = await db('vehicle').select('*');
+
+    return res.status(200).json({
+      success: true,
+      message: 'Vehicles fetched successfully',
+      vehicles: vehicles
+    });
+  } catch (error) {
+    console.error('Error fetching vehicles:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error occurred while fetching vehicles',
+      error: error.message
+    });
+  }
+});
+
+// admin.routes.js
+router.delete("/vehicles/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db("vehicle").where({ vehicle_id: id }).del();
+    res.json({ success: true, message: "Vehicle deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting vehicle:", error);
+    res.status(500).json({ success: false, message: "Error deleting vehicle" });
+  }
+});
+
+
 module.exports = router;
