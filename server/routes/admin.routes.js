@@ -180,4 +180,58 @@ router.delete("/users/:id", async (req, res) => {
 });
 
 
+// ✅ GET all requests with user + vehicle + owner details
+router.get("/requests", async (req, res) => {
+  try {
+    const requests = await db("request as r")
+      .join("user_creds as u", "r.user_id", "u.user_id") // requester
+      .join("vehicle as v", "r.vehicle_id", "v.vehicle_id") // vehicle
+      .join("user_creds as o", "v.owner_id", "o.user_id") // vehicle owner
+      .select(
+        "r.request_id",
+        "r.message",
+        "r.contact",
+
+        "u.user_id as requester_id",
+        "u.full_name as requester_name",
+        "u.email as requester_email",
+        "u.phone as requester_phone",
+
+        "o.user_id as owner_id",
+        "o.full_name as owner_name",
+        "o.email as owner_email",
+        "o.phone as owner_phone",
+
+        "v.vehicle_id",
+        "v.title as vehicle_title",
+        "v.image as vehicle_image"
+      )
+      .orderBy("r.request_id", "desc");
+
+    res.json({ success: true, requests });
+  } catch (error) {
+    console.error("Error fetching requests:", error);
+    res.status(500).json({ success: false, message: "Error fetching requests" });
+  }
+});
+
+// ✅ DELETE request
+router.delete("/requests/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await db("request").where({ request_id: id }).del();
+
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: "Request not found" });
+    }
+
+    res.json({ success: true, message: "Request deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting request:", error);
+    res.status(500).json({ success: false, message: "Error deleting request" });
+  }
+});
+
+
+
 module.exports = router;
