@@ -126,16 +126,16 @@ export default function Vehicles() {
                     <strong>Approved:</strong>{" "}
                     <span
                       className={
-                        v.approved === "true" ? "text-green-600 font-semibold" : "text-red-600 font-semibold"
+                        v.approved  ? "text-green-600 font-semibold" : "text-red-600 font-semibold"
                       }
                     >
-                      {v.approved === "true" ? "Yes" : "No"}
+                      {v.approved ? "Yes" : "No"}
                     </span>
                   </p>
 
                   {/* ✅ Action Buttons */}
                   <div className="mt-4 flex flex-col gap-2">
-                    {!v.approved === "true" ? (
+                    {v.approved ? (
                       <button
                         onClick={() => handleApproval(v.vehicle_id, false)}
                         className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
@@ -143,13 +143,12 @@ export default function Vehicles() {
                         Decline
                       </button>
                     ) : (
-                    <button
+                      <button
                         onClick={() => handleApproval(v.vehicle_id, true)}
                         className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
                       >
                         Approve
                       </button>
-                      
                     )}
 
                     <button

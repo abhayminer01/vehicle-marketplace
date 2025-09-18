@@ -74,56 +74,72 @@ router.get("/", async (req, res) => {
   }
 });
 
-// -------------------- GET VEHICLE BY ID (only if approved) --------------------
-router.get("/:id", async (req, res) => {
+// -------------------- GET VEHICLE BY ID (show all) --------------------
+router.get("/my", authMiddleware, async (req, res) => {
   try {
-    const { id } = req.params;
-    const vehicle = await db("vehicle")
-      .where({ vehicle_id: id, approved: true }) // ✅ check approved
-      .first();
-
-    if (!vehicle) {
-      return res.status(404).json({
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
         success: false,
-        message: "Vehicle not found or not approved yet",
+        message: "Unauthorized: user id missing in token"
       });
     }
 
+    console.log("User ID from token:", req.user.id);
+
+    const vehicles = await db("vehicle")
+      .where({ owner_id: req.user.id })  // ✅ change owner_id → user_id if needed
+      .select("*");
+
     res.json({
       success: true,
-      data: vehicle,
+      vehicles
     });
   } catch (error) {
-    console.error("Error fetching vehicle:", error);
+    console.error("Error fetching vehicles:", error);
     res.status(500).json({
       success: false,
-      message: "Error fetching vehicle",
-      error: error.message,
+      message: "Error fetching vehicles",
+      error: error.message
     });
   }
 });
 
 
-// -------------------- GET USER'S VEHICLES --------------------
-router.get('/my', authMiddleware, async (req, res) => {
-  try {
-    const vehicles = await db('vehicle')
-      .where({ owner_id: req.user.id })
-      .select('*');
 
-    if (vehicles.length === 0) {
+// -------------------- GET USER'S VEHICLES --------------------
+router.get("/my", authMiddleware, async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: user not found in token"
+      });
+    }
+
+    const vehicles = await db("vehicle")
+      .where({ owner_id: req.user.id }) // change to user_id if that’s your schema
+      .select("*");
+
+    if (!vehicles || vehicles.length === 0) {
       return res.json({
         success: true,
         message: "No vehicles found",
         vehicles: []
       });
     }
-    
+
+    // normalize approval field (convert 0/1 → false/true)
+    const formatted = vehicles.map(v => ({
+      ...v,
+      approved: v.approved === 1
+    }));
+
     res.json({
       success: true,
-      vehicles
+      vehicles: formatted
     });
   } catch (error) {
+    console.error("Error fetching vehicles:", error);
     res.status(500).json({
       success: false,
       message: "Error fetching vehicles",

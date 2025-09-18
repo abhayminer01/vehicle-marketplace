@@ -94,6 +94,9 @@
           const statusColor = vehicle.status === "available" ? "bg-green-500" : "bg-gray-500";
           const toggleText = vehicle.status === "available" ? "Mark as Sold" : "Mark as Available";
 
+          const approvedColor = vehicle.approved ? "bg-green-600" : "bg-red-600";
+          const approvedText = vehicle.approved ? "Approved" : "Pending Approval";
+
           const card = document.createElement("div");
           card.className =
             "bg-white rounded-xl shadow-lg overflow-hidden hover:scale-105 transform transition cursor-pointer";
@@ -107,6 +110,9 @@
 
               <span class="inline-block mt-2 px-3 py-1 text-white text-sm rounded ${statusColor}">
                 ${vehicle.status}
+              </span>
+              <span class="inline-block mt-2 ml-2 px-3 py-1 text-white text-sm rounded ${approvedColor}">
+                ${approvedText}
               </span>
 
               <div class="flex flex-wrap gap-3 mt-4">
@@ -127,6 +133,7 @@
           `;
           grid.appendChild(card);
         });
+
       } catch (err) {
         console.error("Error loading vehicles:", err);
         alert("Error loading your listings.");

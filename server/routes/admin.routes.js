@@ -58,24 +58,26 @@ router.post('/verifytoken', async (req, res) => {
     }
 });
 
-router.get('/vehicles', async (req, res) => {
+router.get("/vehicles", async (req, res) => {
   try {
-    const vehicles = await db('vehicle').select('*');
+    const vehicles = await db("vehicle").select("*");
 
-    return res.status(200).json({
-      success: true,
-      message: 'Vehicles fetched successfully',
-      vehicles: vehicles
-    });
+    const formatted = vehicles.map((v) => ({
+      ...v,
+      approved: v.approved === 1, // normalize to boolean
+    }));
+
+    res.json({ success: true, vehicles: formatted });
   } catch (error) {
-    console.error('Error fetching vehicles:', error);
-    return res.status(500).json({
+    console.error("Error fetching vehicles:", error);
+    res.status(500).json({
       success: false,
-      message: 'Error occurred while fetching vehicles',
-      error: error.message
+      message: "Error fetching vehicles",
+      error: error.message,
     });
   }
 });
+
 
 // admin.routes.js
 router.delete("/vehicles/:id", async (req, res) => {
@@ -246,10 +248,10 @@ router.put("/vehicles/:id/approve", async (req, res) => {
       });
     }
 
-    // update vehicle approval
+    // update vehicle approval (store as 0/1)
     const updated = await db("vehicle")
       .where({ vehicle_id: id })
-      .update({ approved });
+      .update({ approved: approved ? 1 : 0 });
 
     if (!updated) {
       return res.status(404).json({
@@ -271,5 +273,6 @@ router.put("/vehicles/:id/approve", async (req, res) => {
     });
   }
 });
+
 
 module.exports = router;
