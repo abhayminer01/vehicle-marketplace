@@ -232,6 +232,44 @@ router.delete("/requests/:id", async (req, res) => {
   }
 });
 
+// -------------------- APPROVE / DECLINE VEHICLE --------------------
+router.put("/vehicles/:id/approve", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { approved } = req.body;
 
+    // validate
+    if (typeof approved !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "Approved field must be true or false",
+      });
+    }
+
+    // update vehicle approval
+    const updated = await db("vehicle")
+      .where({ vehicle_id: id })
+      .update({ approved });
+
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        message: "Vehicle not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Vehicle ${approved ? "approved" : "declined"} successfully`,
+    });
+  } catch (error) {
+    console.error("Error updating vehicle approval:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating vehicle approval",
+      error: error.message,
+    });
+  }
+});
 
 module.exports = router;

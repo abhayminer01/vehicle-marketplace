@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Sidebar from "../components/Sidebar"; // ✅ import your sidebar
+import Sidebar from "../components/Sidebar"; 
 import { useNavigate } from "react-router-dom";
 
 export default function Vehicles() {
@@ -44,6 +44,35 @@ export default function Vehicles() {
     } catch (err) {
       console.error("Error deleting vehicle:", err);
       alert("Error deleting vehicle.");
+    }
+  };
+
+  // ✅ Approve / Decline Vehicle
+  const handleApproval = async (id, status) => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/admin/vehicles/${id}/approve`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ approved: status }),
+        }
+      );
+      const data = await res.json();
+
+      if (data.success) {
+        alert(`Vehicle ${status ? "approved" : "declined"} successfully!`);
+        setVehicles(
+          vehicles.map((v) =>
+            v.vehicle_id === id ? { ...v, approved: status } : v
+          )
+        );
+      } else {
+        alert(data.message || "Failed to update vehicle approval.");
+      }
+    } catch (err) {
+      console.error("Error updating approval:", err);
+      alert("Error updating approval.");
     }
   };
 
@@ -93,13 +122,43 @@ export default function Vehicles() {
                       {v.status}
                     </span>
                   </p>
+                  <p>
+                    <strong>Approved:</strong>{" "}
+                    <span
+                      className={
+                        v.approved === "true" ? "text-green-600 font-semibold" : "text-red-600 font-semibold"
+                      }
+                    >
+                      {v.approved === "true" ? "Yes" : "No"}
+                    </span>
+                  </p>
 
-                  <button
-                    onClick={() => handleDelete(v.vehicle_id)}
-                    className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded w-full"
-                  >
-                    Delete
-                  </button>
+                  {/* ✅ Action Buttons */}
+                  <div className="mt-4 flex flex-col gap-2">
+                    {!v.approved === "true" ? (
+                      <button
+                        onClick={() => handleApproval(v.vehicle_id, false)}
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
+                      >
+                        Decline
+                      </button>
+                    ) : (
+                    <button
+                        onClick={() => handleApproval(v.vehicle_id, true)}
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+                      >
+                        Approve
+                      </button>
+                      
+                    )}
+
+                    <button
+                      onClick={() => handleDelete(v.vehicle_id)}
+                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

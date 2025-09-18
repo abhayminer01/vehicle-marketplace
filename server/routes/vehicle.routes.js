@@ -40,7 +40,7 @@ router.post('/add', authMiddleware, async (req, res) => {
   }
 });
 
-// -------------------- GET ALL VEHICLES --------------------
+// -------------------- GET ALL VEHICLES (only approved) --------------------
 router.get("/", async (req, res) => {
   try {
     const vehicles = await db("vehicle")
@@ -54,8 +54,10 @@ router.get("/", async (req, res) => {
         "image",
         "year",
         "owner_id",
-        "status"
+        "status",
+        "approved"
       )
+      .where({ approved: true }) // ✅ only approved
       .orderBy("vehicle_id", "desc");
 
     res.json({
@@ -71,6 +73,36 @@ router.get("/", async (req, res) => {
     });
   }
 });
+
+// -------------------- GET VEHICLE BY ID (only if approved) --------------------
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const vehicle = await db("vehicle")
+      .where({ vehicle_id: id, approved: true }) // ✅ check approved
+      .first();
+
+    if (!vehicle) {
+      return res.status(404).json({
+        success: false,
+        message: "Vehicle not found or not approved yet",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: vehicle,
+    });
+  } catch (error) {
+    console.error("Error fetching vehicle:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching vehicle",
+      error: error.message,
+    });
+  }
+});
+
 
 // -------------------- GET USER'S VEHICLES --------------------
 router.get('/my', authMiddleware, async (req, res) => {
@@ -96,35 +128,6 @@ router.get('/my', authMiddleware, async (req, res) => {
       success: false,
       message: "Error fetching vehicles",
       error: error.message
-    });
-  }
-});
-
-// -------------------- GET VEHICLE BY ID --------------------
-router.get("/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const vehicle = await db("vehicle")
-      .where({ vehicle_id: id })
-      .first();
-
-    if (!vehicle) {
-      return res.status(404).json({
-        success: false,
-        message: "Vehicle not found",
-      });
-    }
-
-    res.json({
-      success: true,
-      data: vehicle,
-    });
-  } catch (error) {
-    console.error("Error fetching vehicle:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error fetching vehicle",
-      error: error.message,
     });
   }
 });
