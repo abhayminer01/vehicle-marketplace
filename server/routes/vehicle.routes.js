@@ -74,79 +74,46 @@ router.get("/", async (req, res) => {
   }
 });
 
-// -------------------- GET VEHICLE BY ID (show all) --------------------
-router.get("/my", authMiddleware, async (req, res) => {
-  try {
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized: user id missing in token"
-      });
+// -------------------- GET USER'S VEHICLES -------------------- 
+router.get("/my", authMiddleware, async (req, res) => { 
+  try { 
+    if (!req.user || !req.user.id) { 
+      return res.status(401).json({ success: false, message: "Unauthorized: user not found in token" }); 
+    } 
+    const vehicles = await db("vehicle").where({ owner_id: req.user.id }) .select("*"); 
+    if (!vehicles || vehicles.length === 0) { 
+      return res.json({ success: true, message: "No vehicles found", vehicles: [] }); 
     }
+    const formatted = vehicles.map(v => ({ 
+      ...v, approved: v.approved === 1 
+    })); 
+    res.json({ success: true, vehicles: formatted }); 
+  } catch (error) { 
+    console.error("Error fetching vehicles:", error); 
+    res.status(500).json({ success: false, message: "Error fetching vehicles", error: error.message }); 
+  } 
+});
 
-    console.log("User ID from token:", req.user.id);
+// -------------------- PUBLIC GET VEHICLE BY ID --------------------
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
 
-    const vehicles = await db("vehicle")
-      .where({ owner_id: req.user.id })  // ✅ change owner_id → user_id if needed
-      .select("*");
+    const vehicle = await db("vehicle")
+      .where({ vehicle_id: id })
+      .first();
 
-    res.json({
-      success: true,
-      vehicles
-    });
+    res.json({success : true, data : vehicle});
   } catch (error) {
-    console.error("Error fetching vehicles:", error);
+    console.error("Error fetching vehicle:", error);
     res.status(500).json({
-      success: false,
-      message: "Error fetching vehicles",
-      error: error.message
+      error: "Error fetching vehicle",
+      details: error.message
     });
   }
 });
 
 
-
-// -------------------- GET USER'S VEHICLES --------------------
-router.get("/my", authMiddleware, async (req, res) => {
-  try {
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized: user not found in token"
-      });
-    }
-
-    const vehicles = await db("vehicle")
-      .where({ owner_id: req.user.id }) // change to user_id if that’s your schema
-      .select("*");
-
-    if (!vehicles || vehicles.length === 0) {
-      return res.json({
-        success: true,
-        message: "No vehicles found",
-        vehicles: []
-      });
-    }
-
-    // normalize approval field (convert 0/1 → false/true)
-    const formatted = vehicles.map(v => ({
-      ...v,
-      approved: v.approved === 1
-    }));
-
-    res.json({
-      success: true,
-      vehicles: formatted
-    });
-  } catch (error) {
-    console.error("Error fetching vehicles:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error fetching vehicles",
-      error: error.message
-    });
-  }
-});
 
 // -------------------- UPDATE VEHICLE --------------------
 router.put("/edit/:id", authMiddleware, async (req, res) => {

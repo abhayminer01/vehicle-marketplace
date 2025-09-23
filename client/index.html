@@ -61,6 +61,7 @@
     <div class="absolute inset-0 bg-black/60 z-[-1]"></div>
 
     <div class="relative z-10 max-w-3xl px-6">
+      <h1 class="text-blue-400 text-4xl font-bold" id="welcome">Welcome</h1>
       <h1 class="text-5xl md:text-6xl font-extrabold mb-6">
         Buy & Sell Vehicles with <span class="text-blue-400">Confidence</span>
       </h1>
@@ -95,40 +96,22 @@
     </div>
 
     <div class="grid md:grid-cols-3 gap-8 text-center">
-  <!-- Sell Your Vehicle -->
-  <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 hover:scale-105 transform transition shadow-lg">
-    <svg class="h-12 w-12 mx-auto mb-4 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path d="M3 13h2l1 9h12l1-9h2M5 13V7a7 7 0 0 1 14 0v6"/>
-    </svg>
-    <h3 class="text-xl font-semibold mb-2">List Your Vehicle</h3>
-    <p class="text-gray-500">
-      Post your car, bike, or other vehicles for sale with images, details, and price in just a few clicks.
-    </p>
-  </div>
-
-  <!-- Connect with Buyers -->
-  <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 hover:scale-105 transform transition shadow-lg">
-    <svg class="h-12 w-12 mx-auto mb-4 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path d="M17 20h5V4H2v16h5m10-5a3 3 0 1 0-6 0 3 3 0 0 0 6 0z"/>
-    </svg>
-    <h3 class="text-xl font-semibold mb-2">Connect with Buyers</h3>
-    <p class="text-gray-500">
-      Interested buyers can message you directly through Wheelzy to discuss details and offers.
-    </p>
-  </div>
-
-  <!-- Deal Safely -->
-  <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 hover:scale-105 transform transition shadow-lg">
-    <svg class="h-12 w-12 mx-auto mb-4 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path d="M12 1l9 4.5v6c0 5.25-3.75 10.74-9 12-5.25-1.26-9-6.75-9-12v-6L12 1z"/>
-    </svg>
-    <h3 class="text-xl font-semibold mb-2">Deal Safely</h3>
-    <p class="text-gray-500">
-      Meet, verify, and close deals securely. Wheelzy helps you connect but transactions are your responsibility.
-    </p>
-  </div>
-</div>
-
+      <!-- Sell -->
+      <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 hover:scale-105 transform transition shadow-lg">
+        <h3 class="text-xl font-semibold mb-2">List Your Vehicle</h3>
+        <p class="text-gray-500">Post your vehicle for sale with images, details, and price in just a few clicks.</p>
+      </div>
+      <!-- Connect -->
+      <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 hover:scale-105 transform transition shadow-lg">
+        <h3 class="text-xl font-semibold mb-2">Connect with Buyers</h3>
+        <p class="text-gray-500">Interested buyers can message you directly through Wheelzy to discuss details and offers.</p>
+      </div>
+      <!-- Safety -->
+      <div class="bg-white/10 backdrop-blur-md rounded-xl p-8 hover:scale-105 transform transition shadow-lg">
+        <h3 class="text-xl font-semibold mb-2">Deal Safely</h3>
+        <p class="text-gray-500">Meet, verify, and close deals securely. Wheelzy connects you but transactions are your responsibility.</p>
+      </div>
+    </div>
   </section>
 
   <!-- Vehicle Listings -->
@@ -138,12 +121,18 @@
       <p class="text-gray-600">Browse through our latest listings</p>
     </div>
 
-    <div id="vehicle-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      <!-- Vehicle cards injected by script -->
+    <!-- 🔍 Search bar -->
+    <div class="mb-6 flex justify-center">
+      <input id="search-input" 
+             type="text" 
+             placeholder="Search vehicles by title, year, or location..."
+             class="w-full max-w-lg border border-gray-300 rounded-lg px-4 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"/>
     </div>
+
+    <div id="vehicle-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
   </main>
 
-  <!-- Terms & Conditions -->
+  <!-- Footer -->
   <footer class="bg-gray-900 text-gray-400 text-center py-6 px-4 mt-12">
     <p class="text-sm max-w-2xl mx-auto">
       ⚠️ <strong>Disclaimer:</strong> Wheelzy is only a platform to connect buyers and sellers.  
@@ -154,6 +143,77 @@
   </footer>
 
   <script>
+    let allVehicles = []; // store full dataset
+
+    async function loadVehicles() {
+      try {
+        const res = await axios.get("http://localhost:5000/api/vehicles");
+        if (res.data.success) {
+          allVehicles = res.data.data;
+          renderVehicles(allVehicles);
+        }
+      } catch (err) {
+        console.error("Error fetching vehicles:", err);
+        document.getElementById("vehicle-grid").innerHTML = `
+          <div class="col-span-full text-center text-red-400 text-lg py-10">
+            ⚠️ Failed to load vehicles
+          </div>
+        `;
+      }
+    }
+
+    function renderVehicles(vehicles) {
+      const grid = document.getElementById("vehicle-grid");
+      grid.innerHTML = "";
+
+      if (!vehicles || vehicles.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center text-gray-300 text-lg py-10">
+            🚗 No vehicles found
+          </div>
+        `;
+        return;
+      }
+
+      vehicles.forEach(vehicle => {
+        const card = document.createElement("div");
+        card.className =
+          "bg-white/10 backdrop-blur-md rounded-xl shadow-lg overflow-hidden hover:scale-105 transform transition cursor-pointer";
+
+        card.innerHTML = `
+          <img src="${vehicle.image || './placeholder.webp'}" 
+              alt="${vehicle.title}" 
+              class="w-full h-48 object-cover" />
+          <div class="p-4">
+            <h3 class="text-xl font-semibold text-red-600">${vehicle.title} : ${vehicle.year}</h3>
+            <p class="text-gray-600">${vehicle.description || ""}</p>
+            <p class="text-blue-600 font-bold mt-2">₹ ${vehicle.price?.toLocaleString() || 0}</p>
+            <p class="mt-2 font-medium ${vehicle.status === "available" ? "text-green-600" : "text-red-600"}">
+              Status : ${vehicle.status}
+            </p>
+          </div>
+        `;
+
+        card.addEventListener("click", () => {
+          window.location.href = `./vehicle-details.html?id=${vehicle.vehicle_id}`;
+        });
+
+        grid.appendChild(card);
+      });
+    }
+
+    // 🔍 Search functionality
+    document.getElementById("search-input").addEventListener("input", (e) => {
+      const term = e.target.value.toLowerCase();
+      const filtered = allVehicles.filter(v => 
+        (v.title && v.title.toLowerCase().includes(term)) ||
+        (v.year && String(v.year).includes(term)) ||
+        (v.location && v.location.toLowerCase().includes(term)) ||
+        (v.description && v.description.toLowerCase().includes(term))
+      );
+      renderVehicles(filtered);
+    });
+
     function handleSellClick() {
       window.location.href = "./add-vehicle.html";
     }
@@ -171,6 +231,12 @@
           const res = await axios.get('http://localhost:5000/api/auth/verifytoken', {
             headers: { Authorization: `Bearer ${token}` }
           });
+
+          const reqq = await axios.get('http://localhost:5000/api/users/profile', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          document.getElementById('welcome').innerText = "Welcome " + reqq.data.data.fullname;
 
           if (res.data.success) {
             if (loginBtn) loginBtn.remove();
@@ -207,95 +273,36 @@
       }
     });
 
-    async function loadVehicles() {
+  // My Vehicles button logic
+  document.getElementById("my-vehicles-btn").addEventListener("click", async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please login to view your vehicles.");
+      window.location.href = "./login.html";
+      return;
+    }
+
     try {
-      const res = await axios.get("http://localhost:5000/api/vehicles");
+      const res = await axios.get("http://localhost:5000/api/auth/verifytoken", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
       if (res.data.success) {
-        const vehicles = res.data.data;
-        const grid = document.getElementById("vehicle-grid");
-        grid.innerHTML = "";
-
-        if (!vehicles || vehicles.length === 0) {
-          grid.innerHTML = `
-            <div class="col-span-full text-center text-gray-300 text-lg py-10">
-              🚗 No vehicles found
-            </div>
-          `;
-          return;
-        }
-
-        vehicles.forEach(vehicle => {
-          const card = document.createElement("div");
-          card.className =
-            "bg-white/10 backdrop-blur-md rounded-xl shadow-lg overflow-hidden hover:scale-105 transform transition cursor-pointer";
-
-          card.innerHTML = `
-            <img src="${vehicle.image || './placeholder.webp'}" 
-                alt="${vehicle.title}" 
-                class="w-full h-48 object-cover" />
-
-            <div class="p-4">
-              <h3 class="text-xl font-semibold text-red-600">${vehicle.title} : ${vehicle.year}</h3>
-              <p class="text-gray-600">${vehicle.description || ""}</p>
-              <p class="text-blue-600 font-bold mt-2">₹ ${vehicle.price.toLocaleString()}</p>
-
-              <!-- ✅ Vehicle Status -->
-              <p class="mt-2 font-medium ${
-                vehicle.status === "available" 
-                  ? "text-green-600" 
-                  : "text-red-600"
-              }">
-                Status : ${vehicle.status}
-              </p>
-            </div>
-          `;
-
-          card.addEventListener("click", () => {
-            window.location.href = `./vehicle-details.html?id=${vehicle.vehicle_id}`;
-          });
-
-          grid.appendChild(card);
-        });
+        window.location.href = "./my-listings.html";
+      } else {
+        alert("Session expired. Please login again.");
+        localStorage.removeItem("token");
+        window.location.href = "./login.html";
       }
     } catch (err) {
-      console.error("Error fetching vehicles:", err);
-      const grid = document.getElementById("vehicle-grid");
-      grid.innerHTML = `
-        <div class="col-span-full text-center text-red-400 text-lg py-10">
-          ⚠️ Failed to load vehicles
-        </div>
-      `;
-    }
-  }
-
-    // My Vehicles button logic
-document.getElementById("my-vehicles-btn").addEventListener("click", async () => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    alert("Please login to view your vehicles.");
-    window.location.href = "./login.html";
-    return;
-  }
-
-  try {
-    const res = await axios.get("http://localhost:5000/api/auth/verifytoken", {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (res.data.success) {
-      window.location.href = "./my-listings.html";
-    } else {
+      console.error("Token verification failed:", err.response?.data || err.message);
       alert("Session expired. Please login again.");
       localStorage.removeItem("token");
       window.location.href = "./login.html";
     }
-  } catch (err) {
-    console.error("Token verification failed:", err.response?.data || err.message);
-    alert("Session expired. Please login again.");
-    localStorage.removeItem("token");
-    window.location.href = "./login.html";
-  }
-});
+  });
+
   </script>
+
 </body>
 </html>
