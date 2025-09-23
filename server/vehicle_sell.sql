@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 17, 2025 at 07:59 PM
+-- Generation Time: Sep 23, 2025 at 08:06 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -81,6 +81,15 @@ CREATE TABLE `user_creds` (
   `password` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `user_creds`
+--
+
+INSERT INTO `user_creds` (`user_id`, `full_name`, `email`, `phone`, `password`) VALUES
+(10, 'Lokesh Kanagaraj', 'lokeshloki@gmail.com', '9078563412', '$2b$10$7XBC7nQwI3.Nu6dmDkMDquAWbdtR0KWVaLFrf8GmAXa8QIJjfI5xS'),
+(11, 'Nelson Dilip Kumar', 'nelson@gmail.com', '9867495722', '$2b$10$jsVJKBF6HN5MjpqxUylonOXjg4keFTDfz7IKY498YUvkjXRxmHNrq'),
+(12, 'abdu', 'abdu07@gmail.com', '9009006001', '$2b$10$.azgWOKt7WKHnPC5GsN/WeJGs2Qhq.y7NKTxw5xPVv8hiOsu3E0Ti');
+
 -- --------------------------------------------------------
 
 --
@@ -97,8 +106,17 @@ CREATE TABLE `vehicle` (
   `description` varchar(255) NOT NULL,
   `image` varchar(255) NOT NULL,
   `owner_id` int(20) NOT NULL,
-  `status` varchar(255) NOT NULL DEFAULT 'available'
+  `status` varchar(255) NOT NULL DEFAULT 'available',
+  `approved` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `vehicle`
+--
+
+INSERT INTO `vehicle` (`vehicle_id`, `title`, `year`, `price`, `top_speed`, `location`, `description`, `image`, `owner_id`, `status`, `approved`) VALUES
+(9, 'Maruti 800', 2010, 30000, 100, 'Udumalpettai, Chennai', 'Good condition... Doctor used car..urgent sale', 'https://i.pinimg.com/736x/ff/3d/77/ff3d77b1421421ed5366f10a1f774983.jpg', 10, 'available', 1),
+(10, 'Fronx', 2024, 900000, 150, 'Nedumangad', 'good condition, doctor used, full option', 'https://imgd.aeplcdn.com/664x374/n/cw/ec/130591/fronx-exterior-right-front-three-quarter-108.jpeg?isig=0&q=80', 12, 'available', 1);
 
 --
 -- Indexes for dumped tables
@@ -160,13 +178,13 @@ ALTER TABLE `request`
 -- AUTO_INCREMENT for table `user_creds`
 --
 ALTER TABLE `user_creds`
-  MODIFY `user_id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `user_id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `vehicle`
 --
 ALTER TABLE `vehicle`
-  MODIFY `vehicle_id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `vehicle_id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
