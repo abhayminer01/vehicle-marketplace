@@ -1,4 +1,4 @@
 @echo off
 
-cd ./backend
+cd ./server
 npm run dev
